@@ -1,10 +1,18 @@
 from fastapi import FastAPI, UploadFile, File
 from app.utils.pdf_reader import extract_text_from_pdf
 from app.utils.gemini_service import generate_policy_summary
+from app.utils.vector_store import create_vector_store, save_vector_store
+from app.utils.rag_service import ask_policy
+from pydantic import BaseModel
 import shutil
 import os
 
 app = FastAPI(title="Intelligent AI-Based Policy Analysis and Recommendation System")
+
+
+class QuestionRequest(BaseModel):
+    question: str
+
 
 UPLOAD_FOLDER = "app/uploads"
 
@@ -26,10 +34,14 @@ async def upload_policy(file: UploadFile = File(...)):
 
     extracted_text = extract_text_from_pdf(file_path)
 
+    vector_store = create_vector_store(extracted_text)
+
+    save_vector_store(vector_store)
+
     return {
         "filename": file.filename,
         "characters_extracted": len(extracted_text),
-        "preview": extracted_text[:1000],
+        "message": "Policy uploaded and indexed successfully",
     }
 
 
@@ -46,3 +58,11 @@ async def summarize_policy(file: UploadFile = File(...)):
     summary = generate_policy_summary(extracted_text)
 
     return {"filename": file.filename, "summary": summary}
+
+
+@app.post("/ask-policy")
+async def ask_policy_endpoint(request: QuestionRequest):
+
+    answer = ask_policy(request.question)
+
+    return {"question": request.question, "answer": answer}

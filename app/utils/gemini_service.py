@@ -36,3 +36,10 @@ def generate_policy_summary(text):
     response = model.generate_content(prompt)
 
     return response.text
+
+
+def generate_response(prompt):
+
+    response = model.generate_content(prompt)
+
+    return response.text
