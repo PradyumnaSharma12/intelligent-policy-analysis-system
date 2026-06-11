@@ -4,6 +4,8 @@ from app.utils.gemini_service import generate_policy_summary
 from app.utils.vector_store import create_vector_store, save_vector_store
 from app.utils.rag_service import ask_policy
 from pydantic import BaseModel
+from app.utils.classifier_service import classify_text
+from app.utils.recommendation_service import get_recommendations
 import shutil
 import os
 
@@ -33,6 +35,8 @@ async def upload_policy(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     extracted_text = extract_text_from_pdf(file_path)
+    predicted_category = classify_text(extracted_text[:5000])
+    recommended_policies = get_recommendations(predicted_category)
 
     vector_store = create_vector_store(extracted_text)
 
@@ -41,6 +45,8 @@ async def upload_policy(file: UploadFile = File(...)):
     return {
         "filename": file.filename,
         "characters_extracted": len(extracted_text),
+        "predicted_category": predicted_category,
+        "recommended_policies": recommended_policies,
         "message": "Policy uploaded and indexed successfully",
     }
 
