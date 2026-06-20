@@ -33,11 +33,25 @@ if uploaded_file:
 
     with col2:
         if st.button("Index Policy"):
-            with st.spinner("Creating vector database..."):
+            with st.spinner("Analyzing policy..."):
                 response = requests.post(f"{API_URL}/upload-policy", files=files)
 
                 if response.status_code == 200:
+                    data = response.json()
+
                     st.success("Policy indexed successfully!")
+
+                    st.subheader("🏷 Predicted Category")
+
+                    st.info(data["predicted_category"])
+
+                    st.subheader("🤖 AI Recommendations")
+
+                    st.write(data["ai_recommendations"])
+
+                    st.subheader("📊 Policy Analysis")
+
+                    st.write(data["policy_analysis"])
 
                 else:
                     st.error("Failed to index policy")
